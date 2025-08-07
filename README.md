@@ -70,7 +70,67 @@ This repository provides a collection of **Graph Neural Network (GNN)** models f
 | **GCN-Prefix** | GCN baseline with prefix subgraphs and static attention |
 
 
+## 🔍 Sample Visualizations
+
+### 🔗 Transition Attention Correlation (Global Sensitivity)
+Scatter plot showing how learned edge type embeddings influence attention weights in GAT-TDTE, with clear trends across different sequence lengths and strong alignment between structural semantics and attention dynamics.
+
+<img src="assets/correlation.png" width="600"/>
+
 ---
+
+### 🫧 Critical Windows
+Bubble plots identifies where the model consistently concentrates attention and whether these focal points vary meaningfully across different sequence lengths for GAT-TDTE and GAT-TD.
+
+<img src="assets/criticwin_comp.png" width="600"/>
+
+---
+
+### 📈 Attention Summary Statistics
+Aggregates attention metrics applied for GAT-TDTE and GAT-TD to summarize trends in peak intensity, attention span, and positional focus.
+
+<img src="assets/attentionstatis.png" width="700"/>
+
+---
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="assets/heatmap.png" width="300"/>
+      <div>
+        <b>Attention Heatmap</b>
+        <p style="text-align: justify;">
+          Heatmap applied for GAT-TDTE and GAT-TD showing how attention distributes across node positions and how this distribution shifts with sequence length.
+        </p>
+      </div>
+    </td>
+    <td align="center" width="50%">
+      <img src="assets/noderankbar.png" width="300"/>
+      <div>
+        <b>Node Importance</b>
+        <p style="text-align: justify;">
+          Bar chart applied for GAT-TDTE and GAT-TD showing how often each node appears in the Top-3 attention ranks across sequences, revealing consistent positional dominance patterns.
+        </p>
+      </div>
+    </td>
+  </tr>
+</table>
+
+
+---
+
+### 📍 Dynamic Temporal Window – Case Study
+Timeline plot applied for GAT-TD of a sample trace showing how attention shifts over time.
+    
+<img src="assets/sample_timeline.png" width="800"/>
+
+---
+
+### 🧪 Attention Composition – Case Study
+Decomposed attention visualization comparing models with and without edge-type embeddings, highlighting how structural semantics reshape temporal focus in GAT-TDTE.
+
+<img src="assets/sample_composition.png" width="800"/>
+
 
 
 ## 📜 Citation  
