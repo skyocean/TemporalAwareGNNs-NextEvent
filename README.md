@@ -116,14 +116,14 @@ Scatter plot showing how learned edge type embeddings influence attention weight
 ---
 
 ### 🫧 Critical Windows
-Bubble plots identifies where the model consistently concentrates attention and whether these focal points vary meaningfully across different sequence lengths for GAT-TDTE and GAT-TD.
+Bubble plot identifies where the model consistently concentrates attention and whether these focal points vary meaningfully across different sequence lengths for GAT-TDTE and GAT-TD.
 
 <img src="assets/criticwin_comp.png" width="600"/>
 
 ---
 
 ### 📈 Attention Summary Statistics
-Aggregates attention metrics applied for GAT-TDTE and GAT-TD to summarize trends in peak intensity, attention span, and positional focus.
+Aggregates attention metrics are applied for GAT-TDTE and GAT-TD to summarize trends in peak intensity, attention span, and positional focus.
 
 <img src="assets/attentionstatis.png" width="700"/>
 
