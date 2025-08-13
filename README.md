@@ -175,7 +175,7 @@ If you use this code or model, please cite the associated paper:
 
 ```bibtex
 @article{wang2025gattd,
-  title={Temporal Attention GNNs with Time Decay for Interpretable Outcome Prediction in Business Process Monitoring},
+  title={Time-Aware and Transition-Semantic Graph Neural Networks for Interpretable Predictive Business Process Monitoring},
   author={Wang, Fang and Damiani, Ernesto},
   journal={arXiv preprint arXiv:XXXX.XXXXX},
   year={2025}
