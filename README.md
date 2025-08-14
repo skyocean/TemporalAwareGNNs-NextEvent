@@ -8,7 +8,7 @@
 
 ---
 ## 📖 Overview  
-**[Download Preprint](https://arxiv.org/abs/XXXX.XXXXX)**  
+**[Download Preprint](https://arxiv.org/abs/2508.09527)**  
 This repository provides a collection of **Graph Neural Network (GNN)** models for **next-event prediction** in predictive business process monitoring (PBPM). The framework includes both **prefix-based GCNs** for subgraph-level modeling and **full-trace GATs** with dynamic temporal windows and transition-aware edge embeddings. A suite of interpretability visualizations is also provided.
 
 ### Key Features:
@@ -177,6 +177,6 @@ If you use this code or model, please cite the associated paper:
 @article{wang2025gattd,
   title={Time-Aware and Transition-Semantic Graph Neural Networks for Interpretable Predictive Business Process Monitoring},
   author={Wang, Fang and Damiani, Ernesto},
-  journal={arXiv preprint arXiv:XXXX.XXXXX},
+  journal={arXiv preprint arXiv:2508.09527},
   year={2025}
 }
