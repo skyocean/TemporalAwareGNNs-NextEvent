@@ -18,6 +18,13 @@ This repository provides a collection of **Graph Neural Network (GNN)** models f
 - **Joint prediction of sub-status and activity label** for contextual accuracy  
 - **Multilevel interpretability**, including different type of visualizations
 ---
+## ⚙️ Installation & Requirements
+
+This code has been developed and tested with the following versions:
+- **Python:** 3.11.9
+- **torch:** 2.3.1
+- **torch_geometric:** 2.5.3
+---
 
 ## 🧩 Repository Structure  
 
