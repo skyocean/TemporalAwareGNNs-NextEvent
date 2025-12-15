@@ -181,9 +181,11 @@ Decomposed attention visualization comparing models with and without edge-type e
 If you use this code or model, please cite the associated paper:  
 
 ```bibtex
-@article{wang2025gattd,
-  title={Time-Aware and Transition-Semantic Graph Neural Networks for Interpretable Predictive Business Process Monitoring},
+@article{wang2025time,
+  title={Time-aware and transition-semantic graph neural networks for interpretable predictive business process monitoring},
   author={Wang, Fang and Damiani, Ernesto},
-  journal={arXiv preprint arXiv:2508.09527},
-  year={2025}
+  journal={Expert Systems with Applications},
+  pages={130320},
+  year={2025},
+  publisher={Elsevier}
 }
