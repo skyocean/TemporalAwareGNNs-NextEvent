@@ -1,15 +1,11 @@
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, LabelEncoder, StandardScaler
-from keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import Tokenizer
 
 from datetime import datetime, timedelta
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.utils import to_categorical
-
 import numpy as np
 import pandas as pd
+import torch
+from torch.nn.utils.rnn import pad_sequence
 
 def custom_onehot_encode(data, categorical_columns, missing_value):
     """
@@ -105,7 +101,6 @@ def median_scale_encode(data, numerical_columns):
     data_scaled = scaler.fit_transform(data[numerical_columns])
     return data_scaled, scaler
 
-
 def encode_pad_event(event, cat_col_event, num_col_event, case_index, cat_mask=False, num_mask=False, eos = True):
     """
     encode sequence level features
@@ -161,8 +156,13 @@ def encode_pad_event(event, cat_col_event, num_col_event, case_index, cat_mask=F
             encoded_sequences.append(group_combined_features)
     
     # Pad sequences
-    padded_sequences = pad_sequences(encoded_sequences, padding='post', dtype='float32', value = -1)
+    #padded_sequences = pad_sequences(encoded_sequences, padding='post', dtype='float32', value = -1)
     
+    # Convert your encoded_sequences to tensors first
+    tensor_sequences = [torch.tensor(seq, dtype=torch.float32) for seq in encoded_sequences]
+
+    # Pad sequences (batch_first=True gives shape [batch, seq_len] like Keras)
+    padded_sequences = pad_sequence(tensor_sequences, batch_first=True, padding_value=-1)
     return padded_sequences
 
 def encode_pad_sequence(sequence, cat_col_seq, num_col_seq, cat_mask = False, num_mask = False):
@@ -350,7 +350,6 @@ def encode_event_prefix_label(event, core_event, cat_col_event, num_col_event, c
 
     return event_values, encoded_subsequences, y_values, input_event_size, output_size
 
-
 def encode_event_prefix(event, core_event, cat_col_event, num_col_event, case_index, prefix_size, cat_mask=False, num_mask=False):
     """
     Encode event sequence features and generate subsequences.
@@ -482,29 +481,50 @@ def encode_label_event(event, core_event, case_index):
         y_values.append(y_seq)
 
     # Pad to the max sequence length
-    padded_event_values = pad_sequences(event_values, padding='post', dtype='int64', value=-1)
-    padded_y_values = pad_sequences(y_values, padding='post', dtype='int64', value=-1)
-
+     # padded_event_values = pad_sequences(event_values, padding='post', dtype='int64', value=-1)
+     # padded_y_values = pad_sequences(y_values, padding='post', dtype='int64', value=-1)
+    # padded_event_values
+    tensor_event_values = [torch.tensor(seq, dtype=torch.int64) for seq in event_values]
+    padded_event_values = pad_sequence(tensor_event_values, batch_first=True, padding_value=-1)
+    
+    # padded_y_values
+    tensor_y_values = [torch.tensor(seq, dtype=torch.int64) for seq in y_values]
+    padded_y_values = pad_sequence(tensor_y_values, batch_first=True, padding_value=-1)
     input_size = len(le_event.classes_)  # Without EOS but need one for embedding
     output_size = len(le_event.classes_)  # With EOS
 
     return padded_event_values[..., np.newaxis], padded_y_values[..., np.newaxis], input_size, output_size, le_event
 
-def node_time_list(event, start_time_col, case_index):
-    # Convert to datetime if not already
+def node_time_list(event, start_time_col, case_index,  global_delta_p95=None):
+
+    # Ensure datetime
     event[start_time_col] = pd.to_datetime(event[start_time_col])
     event['unix_time'] = event[start_time_col].astype('int64') // 1_000_000_000  # seconds
 
     all_time_list = []
 
     for _, group in event.groupby(case_index):
-        delta = group['unix_time'].values[-1] - group['unix_time'].values[:-1]
-        # Normalize per sequence
-        if len(delta) > 0:
-            norm_delta = delta / (delta.max() + 1e-8)  # avoid division by zero
+        times = group['unix_time'].values  # shape [N]
+
+        if len(times) > 1:
+            if global_delta_p95 is None:
+                raise ValueError("global_delta_p95 must be provided.")
+
+            # Corrected design: local time gap for edge e_j -> e_{j+1}.
+            delta = times[1:] - times[:-1]
+            delta = np.maximum(delta, 0.0)
+
+            # Stabilize time scale.
+            delta = np.log1p(delta)
+
+            # Global training set scaling.
+            norm_delta = delta / (global_delta_p95 + 1e-8)
+            norm_delta = np.clip(norm_delta, 0.0, 1.0)
         else:
-            norm_delta = delta  # edge case: empty delta
-        all_time_list.append(norm_delta)
+            # No edges in a length-0/1 sequence
+            norm_delta = np.array([], dtype=float)
+
+        all_time_list.append(norm_delta.astype(np.float32))
 
     return all_time_list
 
@@ -686,3 +706,34 @@ def length_stratified_split(event_feature_list, test_size=0.2, n_bins=5):
         test_indices.extend([idx for idx, _ in bin_indices_with_lengths[n_train:]])
     
     return train_indices, test_indices
+
+def compute_global_log_delta_p95(event, start_time_col, case_index, q=95):
+    """
+    Compute global p95 of log transformed local inter event gaps.
+    Use training data only.
+    """
+    event = event.copy()
+    event[start_time_col] = pd.to_datetime(event[start_time_col])
+
+    event_sorted = event.sort_values(by=[case_index, start_time_col])
+
+    all_deltas = []
+
+    for _, group in event_sorted.groupby(case_index):
+        times = group[start_time_col].values
+
+        if len(times) > 1:
+            delta = np.diff(times) / np.timedelta64(1, "s")
+            delta = np.maximum(delta, 0.0)
+            delta = np.log1p(delta)
+            all_deltas.extend(delta.tolist())
+
+    if len(all_deltas) == 0:
+        return 1.0
+
+    p95 = np.percentile(np.array(all_deltas, dtype=np.float32), q)
+
+    if p95 <= 0:
+        return 1.0
+
+    return float(p95)
